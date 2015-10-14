@@ -8,9 +8,9 @@ fin_de_juego = False
 
 pilas = pilasengine.iniciar()
 # Usar un fondo estándar
-pilas.fondos.Pasto()
+pilas.fondos.Selva()
 # Añadir un marcador
-puntos = pilas.actores.Puntaje(x=230, y=200, color=pilas.colores.blanco)
+puntos = pilas.actores.Puntaje(x=230, y=200, color=pilas.colores.negro)
 puntos.magnitud = 40
 # Añadir el conmutador de Sonido
 pilas.actores.Sonido()
@@ -20,8 +20,23 @@ balas_simples = pilas.actores.Bala
 monos = []
 
 # Funciones
-def mono_destruido():
-    pass
+
+
+
+
+def perder(torreta,enemigo):
+    global fin_del_juego
+    enemigo.sonreir()
+    torreta.eliminar()
+    pilas.avisar("Game Over My FRieND , conseguiste %d puntos" % (puntos.obtener()))
+    fin_del_juego= True
+  
+def mono_destruido(disparo,enemigo):
+    disparo.eliminar()
+    enemigo.eliminar()
+    puntos.aumentar()
+    a = monos.index(enemigo)
+    del monos[a]
 
 
 def crear_mono():
@@ -29,7 +44,7 @@ def crear_mono():
     enemigo = pilas.actores.Mono()
     # Hacer que se aparición sea con un efecto bonito
     ##la escala varíe entre 0,25 y 0,75 (Ojo con el radio de colisión)
-    enemigo.escala = .5
+    enemigo.escala = 0.75
     # Dotarle de la habilidad de que explote al ser alcanzado por un disparo
     enemigo.aprender(pilas.habilidades.PuedeExplotar)
     # Situarlo en una posición al azar, no demasiado cerca del jugador
@@ -46,11 +61,7 @@ def crear_mono():
     enemigo.x = x
     enemigo.y = y
     # Dotarlo de un movimiento irregular más impredecible
-    tipo_interpolacion = ['lineal',
-                            'aceleracion_gradual',
-                            'desaceleracion_gradual',
-                            'rebote_inicial',
-                            'rebote_final']
+    tipo_interpolacion = ['lineal','aceleracion_gradual','desaceleracion_gradual','rebote_inicial','rebote_final']
     
     duracion = 1 +random.random()*4
     
@@ -70,10 +81,13 @@ def crear_mono():
 # Añadir la torreta del jugador
 
 torreta = pilas.actores.Torreta(enemigos=monos, cuando_elimina_enemigo=mono_destruido)
-
+torreta.aprender("Arrastrable")
 pilas.tareas.agregar(1, crear_mono)
 #pilas.mundo.agregar_tarea(1, crear_mono) <-- sintaxis vieja
 
 
 # Arrancar el juego
+
+pilas.colisiones.agregar(torreta,monos,perder)
 pilas.ejecutar()
+
